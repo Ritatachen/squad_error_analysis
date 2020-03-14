@@ -12,7 +12,7 @@ class model:
         '''
         pass
 
-
+# comment @tf.function to debug
     @tf.function
     def train(self):
         self.train_epoch()
@@ -22,7 +22,6 @@ class model:
     @tf.function
     def train_epoch(self):
         pass
-
 
     @tf.function
     def test_epoch(self):
