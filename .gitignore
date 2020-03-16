@@ -1,2 +1,7 @@
-.idea/
 .models/
+*.npy
+*.pyc
+**/.DS_Store
+*.tfrecord-*
+.idea
+__pycache__/
