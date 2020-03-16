@@ -14,6 +14,7 @@ if __name__ == '__main__':
    '''
    '''
    opt.model_type = "distilbert"
+   # for more pretrain models, see https://github.com/huggingface/transformers/blob/b54ef78d0c30045bb3f9ecc8b178eab0dfdbeaec/docs/source/pretrained_models.rst
    opt.model_name_or_path = "distilbert-base-uncased-distilled-squad"
    opt.do_train = True
    opt.do_eval = True
