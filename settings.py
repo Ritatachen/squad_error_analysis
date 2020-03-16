@@ -1,6 +1,4 @@
 from transformers import (
-    # WEIGHTS_NAME,
-    # AdamW,
     AlbertConfig,
     AlbertForQuestionAnswering,
     AlbertTokenizer,
@@ -22,9 +20,8 @@ from transformers import (
     XLNetConfig,
     XLNetForQuestionAnswering,
     XLNetTokenizer,
-    # get_linear_schedule_with_warmup,
-    # squad_convert_examples_to_features,
 )
+
 ALL_MODELS = sum(
     (
         tuple(conf.pretrained_config_archive_map.keys())
