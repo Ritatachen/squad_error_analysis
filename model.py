@@ -142,8 +142,7 @@ class SQuAD:
 
                 if self.opt.model_type in ["xlnet", "xlm"]:
                     inputs.update({"cls_index": batch[5], "p_mask": batch[6]})
-                    if self.opt.version_2_with_negative:
-                        inputs.update({"is_impossible": batch[7]})
+                    inputs.update({"is_impossible": batch[7]})
                     if hasattr(self.model, "config") and hasattr(self.model.config, "lang2id"):
                         inputs.update(
                             {"langs": (torch.ones(batch[0].shape, dtype=torch.int64) * self.opt.lang_id).to(self.opt.device)}
