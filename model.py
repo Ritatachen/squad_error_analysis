@@ -2,6 +2,8 @@ import os
 import torch
 import timeit
 import logging
+import numpy as np
+import pickle
 from tqdm import tqdm, trange
 from settings import MODEL_CLASSES
 from utils import set_seed, to_list
@@ -23,21 +25,25 @@ class SQuAD:
     def __init__(self, opt):
         # Load pretrained model and tokenizer
         config_class, self.model_class, self.tokenizer_class = MODEL_CLASSES[opt.model_type]
+
         self.config = config_class.from_pretrained(
             opt.config_name if opt.config_name else opt.model_name_or_path,
             cache_dir=opt.cache_dir if opt.cache_dir else None,
         )
+
         self.tokenizer = self.tokenizer_class.from_pretrained(
             opt.tokenizer_name if opt.tokenizer_name else opt.model_name_or_path,
             do_lower_case=opt.do_lower_case,
             cache_dir=opt.cache_dir if opt.cache_dir else None,
         )
+
         self.model = self.model_class.from_pretrained(
             opt.model_name_or_path,
             from_tf=bool(".ckpt" in opt.model_name_or_path),
             config=self.config,
             cache_dir=opt.cache_dir if opt.cache_dir else None,
         )
+
         self.model.to(opt.device)
         logger.info("Training/evaluation parameters %s", opt)
 
@@ -65,6 +71,7 @@ class SQuAD:
             {"params": [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)],
              "weight_decay": 0.0},
         ]
+
         optimizer = AdamW(optimizer_grouped_parameters, lr=self.opt.learning_rate, eps=self.opt.adam_epsilon)
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=self.opt.warmup_steps, num_training_steps=t_total
@@ -72,13 +79,12 @@ class SQuAD:
 
         # Check if saved optimizer or scheduler states exist
         if os.path.isfile(os.path.join(self.opt.model_name_or_path, "optimizer.pt")) and os.path.isfile(
-                os.path.join(self.opt.model_name_or_path, "scheduler.pt")
-        ):
+                os.path.join(self.opt.model_name_or_path, "scheduler.pt")):
             # Load in optimizer and scheduler states
             optimizer.load_state_dict(torch.load(os.path.join(self.opt.model_name_or_path, "optimizer.pt")))
             scheduler.load_state_dict(torch.load(os.path.join(self.opt.model_name_or_path, "scheduler.pt")))
 
-        # Train!
+        # Train !
         logger.info("***** Running training *****")
         logger.info("  Num examples = %d", len(self.train_dataset))
         logger.info("  Num Epochs = %d", self.opt.num_train_epochs)
@@ -232,11 +238,23 @@ class SQuAD:
                         )
 
                 outputs = self.model(**inputs)
+                if self.model.config.output_attentions:
+                    attentions = outputs[2][-4:]
+                    outputs = outputs[:2]
 
             for i, example_index in enumerate(example_indices):
                 eval_feature = self.features[example_index.item()]
-                unique_id = int(eval_feature.unique_id)
-
+                if self.model.config.output_attentions:
+                    unique_id = int(eval_feature.unique_id)
+                    attention = np.array([attention[i].cpu().numpy() for attention in attentions])
+                    tokens = self.features[example_index].tokens
+                    qas_idx = self.examples[example_index].qas_id
+                    attention_output = {
+                        'attention': attention,
+                        'tokens': tokens,
+                        'qas_idx': qas_idx
+                    }
+                    pickle.dump(attention_output, open('{}.pkl'.format(qas_idx), 'wb'))
                 output = [to_list(output[i]) for output in outputs]
 
                 # Some models (XLNet, XLM) use 5 arguments for their predictions, while the other "simpler"
@@ -308,6 +326,7 @@ class SQuAD:
                 self.opt.null_score_diff_threshold,
                 self.tokenizer,
             )
+
 
         # Compute the F1 and exact scores.
         results = squad_evaluate(self.examples, predictions)
