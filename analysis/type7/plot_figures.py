@@ -9,7 +9,7 @@ from settings import MODEL_CLASSES
 
 _, _, tokenizer_class = MODEL_CLASSES['bert']
 tokenizer = tokenizer_class.from_pretrained('bert-large-uncased', do_lower_case=True, cache_dir=None,)
-path = '../../selected_correct_has_answer'
+path = '../../type7'
 
 list_7 = glob.glob(os.path.join(path, "*.pkl"))
 t = 0
@@ -47,7 +47,7 @@ for l in list_7:
     answer_ids = [tokenizer.encode(text)[1:-1] for text in answer_tokens]
     c_ids = tokenizer.convert_tokens_to_ids(c_tokens)
 
-    data = np.vstack([attentions['attention'][4][att_idx][0, 1:].T for att_idx in range(16)])
+    data = np.vstack([attentions['attention'][-1][att_idx][0, 1:].T for att_idx in range(16)])
     data = data[:, :len(tokens)+1]
 
     max_entry = np.max(data)
@@ -61,5 +61,5 @@ for l in list_7:
 
     data = np.vstack([data,gt])
     plt.figure(figsize = (50,50))
-    ax = seaborn.heatmap(data, xticklabels= tokens, yticklabels= list(range(16)), square=True, vmin=0.0, vmax=0.5,cbar=False)
-    ax.figure.savefig('./has_answer/'+l.split('/')[-1].replace('pkl','png'))
+    ax = seaborn.heatmap(data, xticklabels= tokens[1:], yticklabels= list(range(16)), square=True, vmin=0.0, vmax=0.5,cbar=False)
+    ax.figure.savefig('./figures/'+l.split('/')[-1].replace('pkl','png'))
