@@ -55,7 +55,6 @@ for data_blob in dev_data:
                 if not pred_answer:
                     pred_answer = '-'
                 all_answers = '['+'|'.join(all_answers)+']'
-                # has_answer_results.append('{}\t{}\t{}\t{}\t{}\t{}'.format(qa['id'], correct, pred_answer, all_answers, qa['question'],paragraph['context']))
                 has_answer_results.append('{}\n{}\n{}\n{}\n{}\n{}\n'.format(paragraph['context'], qa['id'], correct, pred_answer, all_answers, qa['question']))
 
 has_answer_results = sorted(has_answer_results, key=lambda x:x.split('\n')[2])[:2000]

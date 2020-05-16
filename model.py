@@ -58,7 +58,6 @@ class SQuAD:
 
     def train(self):
         tb_writer = SummaryWriter()
-
         t_total = len(self.train_dataloader) // self.opt.gradient_accumulation_steps * self.opt.num_train_epochs
 
         # Prepare optimizer and schedule (linear warmup and decay)
@@ -119,9 +118,6 @@ class SQuAD:
 
         tr_loss, logging_loss = 0.0, 0.0
         self.model.zero_grad()
-        # train_iterator = trange(
-        #     epochs_trained, int(self.opt.num_train_epochs), desc="Epoch")
-        # Added here for reproductibility
         set_seed(self.opt)
 
         for epoch in range(epochs_trained, self.opt.num_train_epochs):
